@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+        crossorigin="anonymous">
+    <title>My GeoCode App</title>
+</head>
+
+<body>
+    <div class="container">
+        <h1>
+            <strong>Welcome to Location Tracker Program!</strong>
+        </h1>
+        <h3 id="text-fenter">Enter Location:</h3>
+
+        <form id="location-form" name="location-form">
+            <input type="text" id="location-input" class="form-control
+        form-control-lg">
+            <br>
+            <button id="submit" type="submit" class="btn btn-primary btn-block"> Submit</button>
+            <button id="clear" type="reset" value="reset" onclick="clear()" class="btn btn-light btn-block">Clear</button>  
+
+            <div class="card-body" id="formatted-address"></div>
+            <div class="card-body" id="address-components"></div>
+            <div class="card-body" id="geometry"></div>
+        </form>
+
+    </div>
+    <script>
+        // Get Location form
+        var locationForm = document.getElementById('location-form');
+        var clear = document.getElementById('clear');
+
+     // <button id="clear" type="button" class="btn btn-primary btn-block"> Clear</button>   
+        //locationForm.addEventListener('clear', clear);
+        function clear() {
+            document.getElementById("location-form").reset();
+        }
+
+
+        // listen for submit
+        locationForm.addEventListener('submit', geocode);
+        // making a request from axios and putting it in geocode function
+        // for .get parameters we are using Geocode API address
+        function geocode(e) {
+
+            // prevent actual submit
+            e.preventDefault();
+            // this is where hard coded location used to be before assigning into location variable
+            var location = document.getElementById('location-input').value;
+
+            axios.get('https://maps.googleapis.com/maps/api/geocode/json', {
+                // have a second parameter that will be an object of the parameter
+                // this will take the actual location
+                params: {
+                    address: location,
+                    key: 'AIzaSyACdDcHMg6M3GwGpvNo6C5h75Fvwx9gPjw'
+                }
+            })
+                // this function passes the repsone from the requst we made above
+                .then(function (response) {
+                    // log full response
+                    console.log(response);
+                    // this is where we format our address
+                    // has to match the exact same pattern in F12 Chrome i.e first array and then formatted address
+                    // we want to put that address in variable
+                    var formattedAddress = response.data.results[0].formatted_address;
+                    // to show in the screen using list
+                    // we use back ticks `` to create a template literal strings
+                    var formattedAddressOutput = `
+<ul class = "list-group">
+<li class = " list-group-item">${formattedAddress}</li>
+</ul>
+`;
+
+
+                    // Address Compoenents ( Actual array, so you have to loop through each one and output)
+                    var addressComponents = response.data.results[0].address_components;
+                    var addressComponentsOutput = '<ul class="list-group">';
+                    for (var i = 0; i < addressComponents.length; i++) {
+                        addressComponentsOutput += `
+    <li class = "list-group-item"><strong>${addressComponents[i].types[0]
+                            }</strong>: ${addressComponents[i].long_name}</li>
+
+    `;
+                        addressComponentsOutput += '</ul>';
+                    }
+
+                    // Geometry i.e grabs lattitude & longtitude
+                    // this grabs the lattitude 
+                    var lat = response.data.results[0].geometry.location.lat;
+
+                    // this grabs the longitude
+                    var lng = response.data.results[0].geometry.location.lng;
+
+
+                    // to show in the screen using list
+                    // we use back ticks `` to create a template literal strings
+                    var geometryOutput = `
+<ul class = "list-group">
+<li class = " list-group-item"><strong> Lattitude</strong>:
+${lat}</li>
+<li class = " list-group-item"><strong> Longitutude</strong>:
+${lng}</li>
+${formattedAddress}</li>
+</ul>
+`;
+
+
+
+                    //output to app i.e grab the div made at the start
+                    document.getElementById('formatted-address').innerHTML =
+                        formattedAddressOutput;
+                    document.getElementById('address-components').innerHTML =
+                        addressComponentsOutput;
+                    document.getElementById('geometry').innerHTML =
+                        geometryOutput;
+
+                })
+                // this is an expception from the response we passed
+                .catch(function (error) {
+                    console.log(error);
+                });
+        }
+
+
+       
+    </script>
+</body>
+
+</html>
